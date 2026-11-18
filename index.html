@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>风花雪月个人攻略</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="search-wrap">
+      <input id="globalSearch" type="text" placeholder="搜索角色、失物、茶叶……">
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>火焰纹章 风花雪月 · 角色快查攻略站</h1>
+    <p class="hint">该网站仅限兴趣交流使用，能帮到你是我的荣幸。</p>
+
+<div class="toolbar">
+  <button id="addCharacterBtn" class="primary-btn">＋ 添加角色</button>
+  <button id="exportBtn" class="primary-btn">导出备份</button>
+  <label class="primary-btn" style="display:inline-block;cursor:pointer;">
+    导入备份<input type="file" id="importFile" accept=".json" style="display:none;">
+  </label>
+</div>
+
+    <div id="houseFilters" class="house-filters"></div>
+    <div id="characterGrid" class="character-grid"></div>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (async function () {
+      const data = await loadData();
+      initSearch(data);
+      renderHome(data);
+
+      document.getElementById("addCharacterBtn").onclick = () => openCharacterEditor(data, null);
+      document.getElementById("exportBtn").onclick = () => exportBackup(data);
+      document.getElementById("importFile").onchange = e => {
+        if (e.target.files[0]) importBackup(e.target.files[0]);
+      };
+    })();
+  </script>
+</body>
+</html>

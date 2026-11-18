@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>角色档案</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="search-wrap">
+      <input id="globalSearch" type="text" placeholder="搜索角色、失物、茶叶……">
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </header>
+
+  <main class="page" id="characterDetail"></main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script>
+    (async function () {
+      const data = await loadData();
+      initSearch(data);
+      renderCharacter(data);
+    })();
+  </script>
+</body>
+</html>
