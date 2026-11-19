@@ -307,6 +307,31 @@ function renderCharacter(data) {
       <p class="hint">勾选代表已完成。已完成的条目会自动排到下方。</p>
       <div id="supportList"></div>
     </section>
+        <!-- 新增：喜欢的话题 -->
+    <section class="info-box" style="margin-top: 18px;">
+      <h2>喜欢的话题</h2>
+      <div class="topic-list">
+        ${(c.favoriteTopics || []).length 
+          ? (c.favoriteTopics || []).map(t => `<span class="topic-item">${escapeAttr(t)}</span>`).join("") 
+          : '<span class="item-empty">暂无记录</span>'}
+      </div>
+    </section>
+    <!-- 新增：茶会结束时对话 -->
+    <section class="info-box" style="margin-top: 18px;">
+      <h2>茶会结束时对话</h2>
+      <div class="dialog-list">
+        ${(c.teaPartyDialogs || []).length 
+          ? (c.teaPartyDialogs || []).map(d => `
+              <div class="dialog-box">
+                <div class="dialog-char">“${escapeAttr(d.line)}”</div>
+                <div class="dialog-options">
+                  ${(d.answers || []).map(a => `<span class="dialog-option">${escapeAttr(a)}</span>`).join("")}
+                </div>
+              </div>
+            `).join("") 
+          : '<span class="item-empty">暂无记录</span>'}
+      </div>
+    </section>
   `;
 
   document.getElementById("recruitedToggle").addEventListener("change", e => {
@@ -562,6 +587,8 @@ function openCharacterEditor(data, existingId) {
     <div class="item-picker" id="picker_teas"></div>
     <div class="field-label">喜欢礼物</div>
     <div class="item-picker" id="picker_gifts"></div>
+    <label>喜欢的话题（逗号或顿号分隔）<textarea id="f_topics">${escapeAttr((c.favoriteTopics || []).join("，"))}</textarea></label>
+    <label>茶会结束时对话（每行一个，格式：台词 | 选项1, 选项2）<textarea id="f_teadialogs" style="min-height:120px;" placeholder="例如：能和你一起喝茶，真的很开心。| 我也是, 希望还能有下次">${escapeAttr((c.teaPartyDialogs || []).map(d => `${d.line} | ${d.answers.join(", ")}`).join("\n"))}</textarea></label>
     <label class="inline"><input type="checkbox" id="f_recruited" ${c.recruited ? "checked" : ""}> 已挖角</label>
     <div class="modal-actions">
       ${isNew ? "" : '<button id="mDelete" class="danger-btn">删除角色</button>'}
@@ -601,6 +628,18 @@ function openCharacterEditor(data, existingId) {
     if (isNew && !/^[a-z0-9_]+$/.test(id)) { alert("ID 只能用小写字母、数字、下划线"); return; }
 
     const house = overlay.querySelector("#f_house").value;
+    
+    // 解析茶会对话
+    const dialogText = overlay.querySelector("#f_teadialogs").value;
+    const parsedDialogs = dialogText.split("\n").map(line => {
+      line = line.trim();
+      if (!line) return null;
+      // 支持半角竖线 | 和全角竖线 ｜
+      const parts = line.split(/[|｜]/); 
+      const charLine = parts[0].trim();
+      const answers = parts[1] ? splitList(parts[1]) : [];
+      return charLine ? { line: charLine, answers } : null;
+    }).filter(Boolean); // 过滤掉空行
 
     const updated = {
       id,
@@ -611,6 +650,8 @@ function openCharacterEditor(data, existingId) {
       lostItems: splitList(overlay.querySelector("#f_lost").value),
       favoriteTeas: getPickerValues(overlay.querySelector("#picker_teas")),
       favoritegifts: getPickerValues(overlay.querySelector("#picker_gifts")),
+      favoriteTopics: splitList(overlay.querySelector("#f_topics").value), // 新加
+      teaPartyDialogs: parsedDialogs, // 新加
       recruited: overlay.querySelector("#f_recruited").checked
     };
 
