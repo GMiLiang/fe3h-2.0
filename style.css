@@ -629,3 +629,49 @@ mark {
     gap: 8px;
   }
 }
+
+/* ===== 支援卡片按钮组优化 ===== */
+.support-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.support-actions button {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: 1px solid #ccc;
+  text-decoration: none; /* 防止受到已完成划线影响 */
+}
+
+.support-edit {
+  color: #1f2430;
+}
+
+.support-edit:hover {
+  background: #eef0f5;
+}
+
+/* 手机端适配：当屏幕较窄时，把勾选框挤到下一行，按钮留在右上角 */
+@media (max-width: 560px) {
+  .support-card {
+    flex-wrap: wrap;
+    padding: 12px;
+  }
+  
+  .support-ranks {
+    order: 3;          /* 勾选框放到最下面 */
+    width: 100%;       /* 占满整行 */
+    margin-left: 0;
+    margin-top: 8px;
+    justify-content: flex-start;
+  }
+  
+  .support-actions {
+    order: 2;
+    margin-left: auto;
+  }
+}
