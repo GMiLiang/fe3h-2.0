@@ -383,7 +383,10 @@ function renderSupportList(data, characterId) {
           <span class="support-name">${otherName}</span>
         </div>
         <div class="support-ranks">${ranksHtml}</div>
-        <button class="support-del" data-pair="${pairKey(s.pair)}" data-other="${escapeAttr(otherName)}">删除</button>
+        <div class="support-actions">
+          <button class="support-edit" data-pair="${pairKey(s.pair)}" data-other="${escapeAttr(otherName)}">修改</button>
+          <button class="support-del" data-pair="${pairKey(s.pair)}" data-other="${escapeAttr(otherName)}">删除</button>
+        </div>
       </div>
     `;
   }).join("");
@@ -411,10 +414,14 @@ function renderSupportList(data, characterId) {
       const key = btn.dataset.pair;
       const other = btn.dataset.other;
       if (!confirm(`确定删除与「${other}」的所有支援记录？`)) return;
-
       data.supports = data.supports.filter(s => pairKey(s.pair) !== key);
       saveSupports(data.supports);
       renderSupportList(data, characterId);
+    });
+  });
+    list.querySelectorAll(".support-edit").forEach(btn => {
+    btn.addEventListener("click", () => {
+      openSupportRankEditor(data, characterId, btn.dataset.pair, btn.dataset.other);
     });
   });
 }
@@ -662,6 +669,42 @@ function openSupportEditor(data, characterId) {
     });
     saveSupports(data.supports);
     location.reload();
+  };
+}
+
+function openSupportRankEditor(data, characterId, key, otherName) {
+  const s = data.supports.find(x => pairKey(x.pair) === key);
+  if (!s) return;
+
+  const overlay = openModal(`
+    <h2>修改与「${escapeAttr(otherName)}」的支援</h2>
+    <p class="hint" style="margin-top:-10px;">勾选这对角色实际存在的支援等级。取消勾选会移除该等级及其完成记录。</p>
+    <fieldset>
+      <legend>包含的支援等级</legend>
+      ${RANK_ORDER.map(r =>
+        `<label class="inline"><input type="checkbox" value="${r}" ${s.ranks.includes(r) ? "checked" : ""}> ${r}</label>`
+      ).join("")}
+    </fieldset>
+    <div class="modal-actions">
+      <button id="mCancel">取消</button>
+      <button id="mSave" class="primary-btn">保存</button>
+    </div>
+  `);
+
+  overlay.querySelector("#mCancel").onclick = () => overlay.remove();
+  overlay.querySelector("#mSave").onclick = () => {
+    const checked = [...overlay.querySelectorAll("fieldset input:checked")].map(x => x.value);
+    if (!checked.length) { alert("至少保留一个支援等级"); return; }
+    
+    // 重新排序生成新的 ranks 列表
+    s.ranks = RANK_ORDER.filter(r => checked.includes(r));
+    
+    // 清理：如果某个等级被取消了，那么它的完成记录也应该被删掉
+    s.completed = s.completed.filter(r => s.ranks.includes(r));
+
+    saveSupports(data.supports);
+    overlay.remove();
+    renderSupportList(data, characterId); // 局部刷新，体验更丝滑
   };
 }
 
